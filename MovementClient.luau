@@ -1,28 +1,31 @@
+-- Discord: rettasama / also is connected to github | Roblox: rettasama
+
+
 local players = game:GetService("Players")
-local repStorage = game:GetService("ReplicatedStorage")
+local repStorage = game:GetService("ReplicatedStorage")   -- service references
 local debris = game:GetService("Debris")
 local uis = game:GetService("UserInputService")
 local runService = game:GetService("RunService")
 
 local modules = repStorage:WaitForChild("Modules")
-local trails = require(modules:WaitForChild("Trails"))
+local trails = require(modules:WaitForChild("Trails"))   -- module references for camera shake, and trails for dashing
 local shake = require(modules:WaitForChild("CameraShake"))
 
 
 local plr = players.LocalPlayer
-local char = plr.Character or plr.CharacterAdded:Wait()
+local char = plr.Character or plr.CharacterAdded:Wait() -- player references
 local humanoid = char:WaitForChild("Humanoid")
 local rootPart = char:WaitForChild("HumanoidRootPart")
 
 local sounds = repStorage:WaitForChild("Sounds")
-local dashSound = sounds:WaitForChild("dash")
+local dashSound = sounds:WaitForChild("dash")   -- sound references
 dashSound.Looped = false
 local walkSound = sounds:WaitForChild("Walk")
 walkSound.Looped = false
 
 local animsFolder = repStorage:WaitForChild("Anims")
 local movementAnimsFolder = animsFolder:WaitForChild("Movement")
-local idleAnim = movementAnimsFolder:WaitForChild("Idle")
+local idleAnim = movementAnimsFolder:WaitForChild("Idle")   -- anim references
 local walkAnim = movementAnimsFolder:WaitForChild("Walk")
 local runAnim = movementAnimsFolder:WaitForChild("Run")
 
@@ -31,14 +34,14 @@ local backAnim = movementAnimsFolder:WaitForChild("BackDash")
 local rightAnim = movementAnimsFolder:WaitForChild("RightDash")
 local leftAnim = movementAnimsFolder:WaitForChild("LeftDash")
 
-local animator = humanoid:WaitForChild("Animator")
+local animator = humanoid:WaitForChild("Animator")  -- getting animator from humanoid
 
 local idleTrack = animator:LoadAnimation(idleAnim)
 idleTrack.Looped = true
 local walkTrack = animator:LoadAnimation(walkAnim)
 walkTrack.Looped = true
 local runTrack = animator:LoadAnimation(runAnim)
-runTrack.Looped = true
+runTrack.Looped = true                              -- loading anim tracks
 
 local fDashTrack = animator:LoadAnimation(forwardAnim)
 fDashTrack.Looped = false
@@ -52,7 +55,7 @@ lDashTrack.Looped = false
 
 local function stopAnims()
 	idleTrack:Stop(0.1)
-	walkTrack:Stop(0.4)
+	walkTrack:Stop(0.4)   -- function to stop anims so they can overlap
 	runTrack:Stop(0.4)
 end
 
@@ -61,7 +64,7 @@ local playerState = {}
 local isRunning = false
 local normalSpeed = 10
 local runSpeed = 25
-
+                         -- variables to keep track of playerstate, and set walkspeed and velocity settings
 local isDashing = false
 local speed = 150
 local duration = 0.3
@@ -72,11 +75,11 @@ walkTrack:GetMarkerReachedSignal("Impact"):Connect(function()
 
 	if state == Enum.HumanoidStateType.Jumping
 		or state == Enum.HumanoidStateType.Freefall then
-		return
+		return 
 	end
 
 	walkSound:Play()
-end)
+end)                                                      -- sync footsteps when the walk/run animations foot hits the floor
 
 runTrack:GetMarkerReachedSignal("Impact"):Connect(function()
 	local state = humanoid:GetState()
@@ -165,14 +168,14 @@ uis.InputBegan:Connect(function(input, gpe)
 	
 	if input.KeyCode == Enum.KeyCode.Q then
 		if isDashing then return end
-		if char:GetAttribute("Geppo") == true or char:GetAttribute("Punching") == true then return end
+		if char:GetAttribute("Geppo") == true or char:GetAttribute("Punching") == true then return end   -- messy but keeps everything from overlapping
 		if char:GetAttribute("Stunned") == true then return end
 		if char:GetAttribute("Slamming") == true then return end
 		
 		isDashing = true
 		playerState[char] = "Dashing"
 		dashSound:Play()
-		char:SetAttribute("Dashing", true)
+		char:SetAttribute("Dashing", true)    -- sets dashing to true and player state to dashing, applys the trail to character and gives small cam shake. I also detected the move dir and played a specific animation according to the direction the player was moving
 		trails.Apply(char)
 		shake.Apply(0.65, 0.2, 5)
 
@@ -214,7 +217,7 @@ uis.InputBegan:Connect(function(input, gpe)
 		while os.clock() - now <= duration do
 			local elapsed = os.clock() - now
 			local progress = elapsed / duration
-			local currentSpeed = speed * (1 - progress)
+			local currentSpeed = speed * (1 - progress)   -- normal velocity
 			direction = direction
 			local velocity = direction * currentSpeed
 			
@@ -227,7 +230,7 @@ uis.InputBegan:Connect(function(input, gpe)
 		
 		task.delay(0.3, function()
 			playerState[char] = ""
-			char:SetAttribute("Dashing", false)
+			char:SetAttribute("Dashing", false) -- resetting playerstate
 		end)
 		
 		task.delay(1, function()
